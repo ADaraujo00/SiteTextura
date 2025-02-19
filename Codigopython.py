@@ -40,71 +40,81 @@ st.title("Análise de Textura")
 
 # Solicitar os dados do usuário
 modelos = st.text_input("Digite os modelos separados por vírgula:").split(',')
-perda_agua = list(map(float, st.text_input("Digite as perdas de água separadas por vírgula:").split(',')))
-crocancia_med = list(map(float, st.text_input("Digite as crocâncias médias separadas por vírgula:").split(',')))
+perda_agua_input = st.text_input("Digite as perdas de água separadas por vírgula:")
+crocancia_med_input = st.text_input("Digite as crocâncias médias separadas por vírgula:")
 
-# Criar um DataFrame com os dados fornecidos
-data = {
-    'Modelo': modelos,
-    'Perda água': perda_agua,
-    'Crocância med': crocancia_med
-}
-df = pd.DataFrame(data)
+# Verificar se os inputs não estão vazios
+if perda_agua_input and crocancia_med_input:
+    try:
+        perda_agua = list(map(float, perda_agua_input.split(',')))
+        crocancia_med = list(map(float, crocancia_med_input.split(',')))
 
-# Obter a lista de produtos únicos
-produtos = df['Modelo'].unique()
+        # Criar um DataFrame com os dados fornecidos
+        data = {
+            'Modelo': modelos,
+            'Perda água': perda_agua,
+            'Crocância med': crocancia_med
+        }
+        df = pd.DataFrame(data)
 
-# Criar gráficos por produto
-for produto in produtos:
-    df_produto = df[df['Modelo'] == produto]
+        # Obter a lista de produtos únicos
+        produtos = df['Modelo'].unique()
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.scatter(df_produto['Perda água'], df_produto['Crocância med'], color='b', label='Dados')
+        # Criar gráficos por produto
+        for produto in produtos:
+            df_produto = df[df['Modelo'] == produto]
 
-    # Adicionar título e rótulos aos eixos
-    ax.set_title(f'{produto}')
-    ax.set_xlabel('Water loss (%)')
-    ax.set_ylabel('Headness (N)')
+            fig, ax = plt.subplots(figsize=(10, 6))
+            ax.scatter(df_produto['Perda água'], df_produto['Crocância med'], color='b', label='Dados')
 
-    # Definir intervalos dos eixos
-    ax.set_xticks([i for i in range(0, 71, 2)])
-    ax.set_yticks(range(0, 26, 1))
+            # Adicionar título e rótulos aos eixos
+            ax.set_title(f'{produto}')
+            ax.set_xlabel('Water loss (%)')
+            ax.set_ylabel('Headness (N)')
 
-    # Definir limites dos eixos
-    ax.set_xlim(0, 70)
-    ax.set_ylim(0, 25)
+            # Definir intervalos dos eixos
+            ax.set_xticks([i for i in range(0, 71, 2)])
+            ax.set_yticks(range(0, 26, 1))
 
-    # Adicionar linhas dos eixos x e y mais fracas e atrás dos outros elementos
-    ax.axhline(0, color='gray', linewidth=0.2, zorder=0)
-    ax.axvline(0, color='gray', linewidth=0.2, zorder=0)
-    ax.grid(color='gray', linestyle='-', linewidth=0.2, zorder=0)
+            # Definir limites dos eixos
+            ax.set_xlim(0, 70)
+            ax.set_ylim(0, 25)
 
-    # Marcar um ponto no ponto de encontro (média dos valores)
-    mean_perda_agua = df_produto['Perda água'].mean()
-    mean_crocancia_med = df_produto['Crocância med'].mean()
-    ax.scatter(mean_perda_agua, mean_crocancia_med, color='r', marker='o', s=100, label='Ponto de Encontro', zorder=5)
+            # Adicionar linhas dos eixos x e y mais fracas e atrás dos outros elementos
+            ax.axhline(0, color='gray', linewidth=0.2, zorder=0)
+            ax.axvline(0, color='gray', linewidth=0.2, zorder=0)
+            ax.grid(color='gray', linestyle='-', linewidth=0.2, zorder=0)
 
-    # Preencher com um degradê do verde para o laranja (mais claro e transparente)
-    gradient_fill(ax, [20, 60], np.array([5]), np.array([24.8]), 'lightgreen', 'lightcoral')
+            # Marcar um ponto no ponto de encontro (média dos valores)
+            mean_perda_agua = df_produto['Perda água'].mean()
+            mean_crocancia_med = df_produto['Crocância med'].mean()
+            ax.scatter(mean_perda_agua, mean_crocancia_med, color='r', marker='o', s=100, label='Ponto de Encontro', zorder=5)
 
-    # Adicionar linhas vermelhas
-    ax.plot([20, 60], [5, 5], color='red', zorder=3)
-    ax.plot([20, 20], [0.5, 24.8], color='red', zorder=3)
-    ax.plot([60, 60], [0.5, 24.8], color='red', zorder=3)
+            # Preencher com um degradê do verde para o laranja (mais claro e transparente)
+            gradient_fill(ax, [20, 60], np.array([5]), np.array([24.8]), 'lightgreen', 'lightcoral')
 
-    # Adicionar linha cinza
-    ax.plot([20, 60], [10, 10], color='gray', zorder=3)
+            # Adicionar linhas vermelhas
+            ax.plot([20, 60], [5, 5], color='red', zorder=3)
+            ax.plot([20, 20], [0.5, 24.8], color='red', zorder=3)
+            ax.plot([60, 60], [0.5, 24.8], color='red', zorder=3)
 
-    # Adicionar palavras no eixo X, alinhadas com a linha do eixo y = 13
-    ax.text(10, 13, 'Uncooked', color='black', ha='center', va='center', fontsize=20, zorder=15)
-    ax.text(65, 13, 'Dry', color='black', ha='center', va='center', fontsize=20, zorder=15)
-    ax.text(40, 2, 'Indefinite', color='black', ha='center', va='center', fontsize=20, zorder=15)
+            # Adicionar linha cinza
+            ax.plot([20, 60], [10, 10], color='gray', zorder=3)
 
-    # Adicionar legenda
-    ax.legend()
+            # Adicionar palavras no eixo X, alinhadas com a linha do eixo y = 13
+            ax.text(10, 13, 'Uncooked', color='black', ha='center', va='center', fontsize=20, zorder=15)
+            ax.text(65, 13, 'Dry', color='black', ha='center', va='center', fontsize=20, zorder=15)
+            ax.text(40, 2, 'Indefinite', color='black', ha='center', va='center', fontsize=20, zorder=15)
 
-    # Adicionar imagem ao gráfico
-    add_image(ax, 'foto.png', zoom=0.25, xy=(0.9, -0.1))
+            # Adicionar legenda
+            ax.legend()
 
-    # Exibir o gráfico
-    st.pyplot(fig)
+            # Adicionar imagem ao gráfico
+            add_image(ax, 'foto_1.png', zoom=0.25, xy=(0.9, -0.1))
+
+            # Exibir o gráfico
+            st.pyplot(fig)
+    except ValueError:
+        st.error("Por favor, insira valores numéricos válidos para perdas de água e crocâncias médias.")
+else:
+    st.warning("Por favor, insira os dados necessários.")
