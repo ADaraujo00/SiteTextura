@@ -104,7 +104,7 @@ for produto in produtos:
     ax.legend()
 
     # Adicionar imagem ao gráfico
-    add_image(ax, 'foto_1.png', zoom=0.25, xy=(0.9, -0.1))
+    add_image(ax, 'foto.png', zoom=0.25, xy=(0.9, -0.1))
 
     # Exibir o gráfico
     st.pyplot(fig)
