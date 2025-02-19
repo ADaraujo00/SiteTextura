@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.colors as mcolors
 from matplotlib.patches import FancyArrow, Rectangle
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import os
 
 # Função para criar um gradiente de cores mais claras e transparentes
 def gradient_fill(ax, x, y1, y2, color1, color2, **kwargs):
@@ -30,10 +31,13 @@ def gradient_box(ax, x, y, width, height, color1, color2, **kwargs):
 
 # Função para adicionar uma imagem ao gráfico
 def add_image(ax, image_path, zoom=0.2, xy=(0.85, 0.15)):
-    image = plt.imread(image_path)
-    imagebox = OffsetImage(image, zoom=zoom)
-    ab = AnnotationBbox(imagebox, xy, frameon=False, xycoords='axes fraction')
-    ax.add_artist(ab)
+    if os.path.exists(image_path):
+        image = plt.imread(image_path)
+        imagebox = OffsetImage(image, zoom=zoom)
+        ab = AnnotationBbox(imagebox, xy, frameon=False, xycoords='axes fraction')
+        ax.add_artist(ab)
+    else:
+        st.error(f"Arquivo de imagem '{image_path}' não encontrado.")
 
 # Interface do Streamlit
 st.title("Análise de Textura")
@@ -110,7 +114,7 @@ if perda_agua_input and crocancia_med_input:
             ax.legend()
 
             # Adicionar imagem ao gráfico
-            add_image(ax, 'foto_1.png', zoom=0.25, xy=(0.9, -0.1))
+            add_image(ax, 'foto.png', zoom=0.25, xy=(0.9, -0.1))
 
             # Exibir o gráfico
             st.pyplot(fig)
