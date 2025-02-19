@@ -1,2 +1,0 @@
-# SiteTextura
-SiteTextura
