@@ -1,10 +1,10 @@
+import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.colors as mcolors
 from matplotlib.patches import FancyArrow, Rectangle
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-import streamlit as st
 
 # Função para criar um gradiente de cores mais claras e transparentes
 def gradient_fill(ax, x, y1, y2, color1, color2, **kwargs):
@@ -35,8 +35,10 @@ def add_image(ax, image_path, zoom=0.2, xy=(0.85, 0.15)):
     ab = AnnotationBbox(imagebox, xy, frameon=False, xycoords='axes fraction')
     ax.add_artist(ab)
 
-# Solicitar os dados do usuário
+# Interface do Streamlit
 st.title("Análise de Textura")
+
+# Solicitar os dados do usuário
 modelos = st.text_input("Digite os modelos separados por vírgula:").split(',')
 perda_agua = list(map(float, st.text_input("Digite as perdas de água separadas por vírgula:").split(',')))
 crocancia_med = list(map(float, st.text_input("Digite as crocâncias médias separadas por vírgula:").split(',')))
