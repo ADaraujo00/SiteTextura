@@ -74,7 +74,7 @@ if perda_agua_input and crocancia_med_input:
             # Adicionar título e rótulos aos eixos
             ax.set_title(f'{produto}')
             ax.set_xlabel('Water loss (%)')
-            ax.set_ylabel('Headness (N)')
+            ax.set_ylabel('Hardness (N)')
 
             # Definir intervalos dos eixos
             ax.set_xticks([i for i in range(0, 71, 2)])
