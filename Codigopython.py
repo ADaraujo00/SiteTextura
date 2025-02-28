@@ -28,26 +28,10 @@ def add_image(ax, image_path, zoom=0.2, xy=(0.85, 0.15)):
     else:
         st.error(f"Arquivo de imagem '{image_path}' não encontrado.")
 
-# Interface do Streamlit
-st.title("Análise de Textura")
-
-# Seleção entre 1 ou 2 gráficos
-grafico_opcao = st.radio("Selecione o número de gráficos", ('1 gráfico', '2 gráficos'))
-
-# Campo de entrada comum para todos os gráficos
-modelos_input = st.text_input("Digite os modelos separados por vírgula:").strip()
-perda_agua_input = st.text_input("Digite as perdas de água separadas por vírgula:").strip()
-crocancia_input = st.text_area("Digite os valores das crocâncias separadas por vírgula (os valores serão usados para calcular a crocância média):").strip()
-
-# Se 1 gráfico for selecionado, adicionar campo para Tensão
-tensao_input = None
-if grafico_opcao == '1 gráfico':
-    tensao_input = st.text_input("Digite a tensão do produto:")
-
 # Função para gerar gráfico
 def gerar_grafico(df, produto, tensao=None):
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.scatter(df['Perda água'], df['Crocância med'], color='b', label='Dados')
+    ax.scatter(df['Perda água'], df['Crocância med'], label=produto)
 
     # Adicionar título e rótulos aos eixos
     ax.set_title(f'{produto}')
@@ -101,8 +85,19 @@ def gerar_grafico(df, produto, tensao=None):
     # Exibir o gráfico
     st.pyplot(fig)
 
-# Lógica de visualização
-if grafico_opcao == '1 gráfico':
+# Interface do Streamlit
+st.title("Escolha uma Opção")
+
+# Seleção entre "Análise e Performance" e "Benchmarking"
+opcao = st.radio("Selecione uma opção", ('Análise e Performance', 'Benchmarking'))
+
+if opcao == 'Análise e Performance':
+    # Código atual para "Análise e Performance"
+    modelos_input = st.text_input("Digite os modelos separados por vírgula:").strip()
+    perda_agua_input = st.text_input("Digite as perdas de água separadas por vírgula:").strip()
+    crocancia_input = st.text_area("Digite os valores das crocâncias separadas por vírgula (os valores serão usados para calcular a crocância média):").strip()
+    tensao_input = st.text_input("Digite a tensão do produto:")
+
     if modelos_input and perda_agua_input and crocancia_input:
         try:
             # Conversão para listas de dados
@@ -131,55 +126,156 @@ if grafico_opcao == '1 gráfico':
     else:
         st.warning("Por favor, insira os dados necessários.")
 
-elif grafico_opcao == '2 gráficos':
-    # Solicitar as informações para o segundo gráfico
-    modelos_input_2 = st.text_input("Digite os modelos para o segundo gráfico separados por vírgula:").strip()
-    perda_agua_input_2 = st.text_input("Digite as perdas de água para o segundo gráfico separados por vírgula:").strip()
-    crocancia_input_2 = st.text_area("Digite os valores das crocâncias para o segundo gráfico separados por vírgula:").strip()
+elif opcao == 'Benchmarking':
+    # Código para "Benchmarking"
+    st.title("Benchmarking")
 
-    if modelos_input_2 and perda_agua_input_2 and crocancia_input_2 and modelos_input and perda_agua_input and crocancia_input:
+    modelos_input = st.text_input("Digite os modelos separados por vírgula:").strip()
+    perda_agua_input = st.text_input("Digite as perdas de água separadas por vírgula:").strip()
+    crocancia_input = st.text_area("Digite os valores das crocâncias separadas por vírgula (os valores serão usados para calcular a crocância média):").strip()
+
+    if modelos_input and perda_agua_input and crocancia_input:
         try:
             # Conversão para listas de dados
-            modelos_1 = modelos_input.split(',')
-            perda_agua_1 = list(map(float, perda_agua_input.split(',')))
-            crocancia_1 = list(map(float, crocancia_input.split(',')))
-
-            modelos_2 = modelos_input_2.split(',')
-            perda_agua_2 = list(map(float, perda_agua_input_2.split(',')))
-            crocancia_2 = list(map(float, crocancia_input_2.split(',')))
+            modelos = modelos_input.split(',')
+            perda_agua = list(map(float, perda_agua_input.split(',')))
+            crocancia = list(map(float, crocancia_input.split(',')))
 
             # Calcular a média da crocância
-            crocancia_media_1 = np.mean(crocancia_1)
-            crocancia_med_1 = [crocancia_media_1] * len(modelos_1)
+            crocancia_media = np.mean(crocancia)
+            crocancia_med = [crocancia_media] * len(modelos)  # Atribuir a mesma média a todos os modelos
 
-            crocancia_media_2 = np.mean(crocancia_2)
-            crocancia_med_2 = [crocancia_media_2] * len(modelos_2)
-
-            # Criar DataFrame para os dois gráficos
-            data_1 = {
-                'Modelo': modelos_1,
-                'Perda água': perda_agua_1,
-                'Crocância med': crocancia_med_1
+            # Criar um DataFrame com os dados fornecidos
+            data = {
+                'Modelo': modelos,
+                'Perda água': perda_agua,
+                'Crocância med': crocancia_med
             }
-            df_1 = pd.DataFrame(data_1)
+            df = pd.DataFrame(data)
 
-            data_2 = {
-                'Modelo': modelos_2,
-                'Perda água': perda_agua_2,
-                'Crocância med': crocancia_med_2
-            }
-            df_2 = pd.DataFrame(data_2)
+            # Gerar gráfico inicial
+            fig, ax = plt.subplots(figsize=(10, 6))
+            colors = plt.cm.get_cmap('tab10', len(modelos))
 
-            # Gerar os gráficos
-            for produto in modelos_1:
-                df_produto_1 = df_1[df_1['Modelo'] == produto]
-                gerar_grafico(df_produto_1, produto)
+            for i, produto in enumerate(modelos):
+                df_produto = df[df['Modelo'] == produto]
+                ax.scatter(df_produto['Perda água'], df_produto['Crocância med'], color=colors(i), label=produto)
 
-            for produto in modelos_2:
-                df_produto_2 = df_2[df_2['Modelo'] == produto]
-                gerar_grafico(df_produto_2, produto)
+            # Adicionar título e rótulos aos eixos
+            ax.set_title('Benchmarking')
+            ax.set_xlabel('Water loss (%)')
+            ax.set_ylabel('Hardness (N)')
 
+            # Definir intervalos dos eixos
+            ax.set_xticks([i for i in range(0, 71, 2)])
+             ax.set_yticks(range(0, 26, 1))
+
+            # Definir limites dos eixos
+            ax.set_xlim(0, 70)
+            ax.set_ylim(0, 25)
+
+            # Adicionar linhas dos eixos x e y mais fracas e atrás dos outros elementos
+            ax.axhline(0, color='gray', linewidth=0.2, zorder=0)
+            ax.axvline(0, color='gray', linewidth=0.2, zorder=0)
+            ax.grid(color='gray', linestyle='-', linewidth=0.2, zorder=0)
+
+            # Preencher com um degradê do verde para o laranja (mais claro e transparente)
+            gradient_fill(ax, [20, 60], np.array([5]), np.array([24.8]), 'lightgreen', 'lightcoral')
+
+            # Adicionar linhas vermelhas
+            ax.plot([20, 60], [5, 5], color='red', zorder=3)
+            ax.plot([20, 20], [0.5, 24.8], color='red', zorder=3)
+            ax.plot([60, 60], [0.5, 24.8], color='red', zorder=3)
+
+            # Adicionar linha cinza
+            ax.plot([20, 60], [10, 10], color='gray', zorder=3)
+
+            # Adicionar palavras no eixo X, alinhadas com a linha do eixo y = 13
+            ax.text(10, 13, 'Uncooked', color='black', ha='center', va='center', fontsize=20, zorder=15)
+            ax.text(65, 13, 'Dry', color='black', ha='center', va='center', fontsize=20, zorder=15)
+            ax.text(40, 2, 'Indefinite', color='black', ha='center', va='center', fontsize=20, zorder=15)
+
+            # Adicionar imagem ao gráfico
+            add_image(ax, 'foto.png', zoom=0.25, xy=(0.9, -0.1))
+
+            # Adicionar legenda
+            ax.legend()
+
+            # Exibir o gráfico
+            st.pyplot(fig)
+
+            # Adicionar novo produto
+            novo_produto = st.text_input("Digite o nome do novo produto:")
+            nova_perda_agua = st.text_input("Digite a perda de água do novo produto:")
+            nova_crocancia = st.text_input("Digite a crocância do novo produto:")
+
+            if novo_produto and nova_perda_agua and nova_crocancia:
+                try:
+                    nova_perda_agua = float(nova_perda_agua)
+                    nova_crocancia = float(nova_crocancia)
+
+                    # Adicionar novo produto ao DataFrame
+                    novo_dado = pd.DataFrame({
+                        'Modelo': [novo_produto],
+                        'Perda água': [nova_perda_agua],
+                        'Crocância med': [nova_crocancia]
+                    })
+                    df = pd.concat([df, novo_dado], ignore_index=True)
+
+                    # Gerar gráfico atualizado
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    colors = plt.cm.get_cmap('tab10', len(df['Modelo'].unique()))
+
+                    for i, produto in enumerate(df['Modelo'].unique()):
+                        df_produto = df[df['Modelo'] == produto]
+                        ax.scatter(df_produto['Perda água'], df_produto['Crocância med'], color=colors(i), label=produto)
+
+                    # Adicionar título e rótulos aos eixos
+                    ax.set_title('Benchmarking')
+                    ax.set_xlabel('Water loss (%)')
+                    ax.set_ylabel('Hardness (N)')
+
+                    # Definir intervalos dos eixos
+                    ax.set_xticks([i for i in range(0, 71, 2)])
+                    ax.set_yticks(range(0, 26, 1))
+
+                    # Definir limites dos eixos
+                    ax.set_xlim(0, 70)
+                    ax.set_ylim(0, 25)
+
+                    # Adicionar linhas dos eixos x e y mais fracas e atrás dos outros elementos
+                    ax.axhline(0, color='gray', linewidth=0.2, zorder=0)
+                    ax.axvline(0, color='gray', linewidth=0.2, zorder=0)
+                    ax.grid(color='gray', linestyle='-', linewidth=0.2, zorder=0)
+
+                    # Preencher com um degradê do verde para o laranja (mais claro e transparente)
+                    gradient_fill(ax, [20, 60], np.array([5]), np.array([24.8]), 'lightgreen', 'lightcoral')
+
+                    # Adicionar linhas vermelhas
+                    ax.plot([20, 60], [5, 5], color='red', zorder=3)
+                    ax.plot([20, 20], [0.5, 24.8], color='red', zorder=3)
+                    ax.plot([60, 60], [0.5, 24.8], color='red', zorder=3)
+
+                    # Adicionar linha cinza
+                    ax.plot([20, 60], [10, 10], color='gray', zorder=3)
+
+                    # Adicionar palavras no eixo X, alinhadas com a linha do eixo y = 13
+                    ax.text(10, 13, 'Uncooked', color='black', ha='center', va='center', fontsize=20, zorder=15)
+                    ax.text(65, 13, 'Dry', color='black', ha='center', va='center', fontsize=20, zorder=15)
+                    ax.text(40, 2, 'Indefinite', color='black', ha='center', va='center', fontsize=20, zorder=15)
+
+                    # Adicionar imagem ao gráfico
+                    add_image(ax, 'foto.png', zoom=0.25, xy=(0.9, -0.1))
+
+                    # Adicionar legenda
+                    ax.legend()
+
+                    # Exibir o gráfico atualizado
+                    st.pyplot(fig)
+
+                except ValueError:
+                    st.error("Por favor, insira valores numéricos válidos para perda de água e crocância do novo produto.")
         except ValueError:
             st.error("Por favor, insira valores numéricos válidos para perdas de água e crocâncias.")
     else:
-        st.warning("Por favor, insira todos os dados necessários para ambos os gráficos.")
+        st.warning("Por favor, insira os dados necessários.")
