@@ -168,7 +168,7 @@ elif opcao == 'Benchmarking':
 
             # Definir intervalos dos eixos
             ax.set_xticks([i for i in range(0, 71, 2)])
-             ax.set_yticks(range(0, 26, 1))
+            ax.set_yticks(range(0, 26, 1))
 
             # Definir limites dos eixos
             ax.set_xlim(0, 70)
