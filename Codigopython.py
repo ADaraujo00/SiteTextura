@@ -164,36 +164,4 @@ elif opcao == 'Benchmarking':
         gerar_grafico(st.session_state.df)
 
 if opcao == 'Análise e Performance':
-    # Código atual para "Análise e Performance"
-    modelos_input = st.text_input("Digite os modelos separados por vírgula:").strip()
-    perda_agua_input = st.text_input("Digite as perdas de água separadas por vírgula:").strip()
-    crocancia_input = st.text_area("Digite os valores das crocâncias separadas por vírgula (os valores serão usados para calcular a crocância média):").strip()
-    tensao_input = st.text_input("Digite a tensão do produto:")
-
-    if modelos_input and perda_agua_input and crocancia_input:
-        try:
-            # Conversão para listas de dados
-            modelos = modelos_input.split(',')
-            perda_agua = list(map(float, perda_agua_input.split(',')))
-            crocancia = list(map(float, crocancia_input.split(',')))
-
-            # Calcular a média da crocância
-            crocancia_media = np.mean(crocancia)
-            crocancia_med = [crocancia_media] * len(modelos)  # Atribuir a mesma média a todos os modelos
-
-            # Criar um DataFrame com os dados fornecidos
-            data = {
-                'Modelo': modelos,
-                'Perda água': perda_agua,
-                'Crocância med': crocancia_med
-            }
-            df = pd.DataFrame(data)
-
-            # Gerar gráfico
-            for produto in modelos:
-                df_produto = df[df['Modelo'] == produto]
-                gerar_grafico(df_produto, produto, tensao_input)
-        except ValueError:
-            st.error("Por favor, insira valores numéricos válidos para perdas de água e crocâncias.")
-    else:
-        st.warning("Por favor, insira os dados necessários.")
+    
