@@ -29,12 +29,16 @@ def add_image(ax, image_path, zoom=0.2, xy=(0.85, 0.15)):
         st.error(f"Arquivo de imagem '{image_path}' não encontrado.")
 
 # Função para gerar gráfico
-def gerar_grafico(df, produto, tensao=None):
+def gerar_grafico(df, produto=None, tensao=None):
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.scatter(df['Perda água'], df['Crocância med'], label=produto)
+    colors = plt.cm.get_cmap('tab10', len(df['Modelo'].unique()))
+
+    for i, produto in enumerate(df['Modelo'].unique()):
+        df_produto = df[df['Modelo'] == produto]
+        ax.scatter(df_produto['Perda água'], df_produto['Crocância med'], color=colors(i), label=produto)
 
     # Adicionar título e rótulos aos eixos
-    ax.set_title(f'{produto}')
+    ax.set_title('Benchmarking' if produto is None else f'{produto}')
     ax.set_xlabel('Water loss (%)')
     ax.set_ylabel('Hardness (N)')
 
@@ -76,11 +80,11 @@ def gerar_grafico(df, produto, tensao=None):
     ax.text(65, 13, 'Dry', color='black', ha='center', va='center', fontsize=20, zorder=15)
     ax.text(40, 2, 'Indefinite', color='black', ha='center', va='center', fontsize=20, zorder=15)
 
-    # Remover a legenda de pontos
-    ax.legend().set_visible(False)
-
     # Adicionar imagem ao gráfico
     add_image(ax, 'foto.png', zoom=0.25, xy=(0.9, -0.1))
+
+    # Adicionar legenda
+    ax.legend()
 
     # Exibir o gráfico
     st.pyplot(fig)
@@ -146,11 +150,11 @@ if opcao == 'Análise e Performance':
                 modelos_1 = modelos_input_1.split(',')
                 perda_agua_1 = list(map(float, perda_agua_input_1.split(',')))
                 crocancia_1 = list(map(float, crocancia_input_1.split(',')))
-
                 modelos_2 = modelos_input_2.split(',')
                 perda_agua_2 = list(map(float, perda_agua_input_2.split(',')))
                 crocancia_2 = list(map(float, crocancia_input_2.split(',')))
-                 # Calcular a média da crocância
+
+                # Calcular a média da crocância
                 crocancia_media_1 = np.mean(crocancia_1)
                 crocancia_med_1 = [crocancia_media_1] * len(modelos_1)
 
