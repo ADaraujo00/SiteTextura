@@ -29,12 +29,16 @@ def add_image(ax, image_path, zoom=0.2, xy=(0.85, 0.15)):
         st.error(f"Arquivo de imagem '{image_path}' não encontrado.")
 
 # Função para gerar gráfico
-def gerar_grafico(df, produto, tensao=None):
+def gerar_grafico(df):
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.scatter(df['Perda água'], df['Crocância med'], label=produto)
+    colors = plt.cm.get_cmap('tab10', len(df['Modelo'].unique()))
+
+    for i, produto in enumerate(df['Modelo'].unique()):
+        df_produto = df[df['Modelo'] == produto]
+        ax.scatter(df_produto['Perda água'], df_produto['Crocância med'], color=colors(i), label=produto)
 
     # Adicionar título e rótulos aos eixos
-    ax.set_title(f'{produto}')
+    ax.set_title('Benchmarking')
     ax.set_xlabel('Water loss (%)')
     ax.set_ylabel('Hardness (N)')
 
@@ -50,15 +54,6 @@ def gerar_grafico(df, produto, tensao=None):
     ax.axhline(0, color='gray', linewidth=0.2, zorder=0)
     ax.axvline(0, color='gray', linewidth=0.2, zorder=0)
     ax.grid(color='gray', linestyle='-', linewidth=0.2, zorder=0)
-
-    # Marcar um ponto no ponto de encontro (média dos valores)
-    mean_perda_agua = df['Perda água'].mean()
-    mean_crocancia_med = df['Crocância med'].mean()
-    ax.scatter(mean_perda_agua, mean_crocancia_med, color='r', marker='o', s=100, label='Ponto de Encontro', zorder=5)
-
-    # Adicionar tensão ao lado do ponto de encontro, se fornecido
-    if tensao:
-        ax.text(mean_perda_agua, mean_crocancia_med, f' Tensão: {tensao}', color='black', fontsize=12, ha='left')
 
     # Preencher com um degradê do verde para o laranja (mais claro e transparente)
     gradient_fill(ax, [20, 60], np.array([5]), np.array([24.8]), 'lightgreen', 'lightcoral')
@@ -76,11 +71,11 @@ def gerar_grafico(df, produto, tensao=None):
     ax.text(65, 13, 'Dry', color='black', ha='center', va='center', fontsize=20, zorder=15)
     ax.text(40, 2, 'Indefinite', color='black', ha='center', va='center', fontsize=20, zorder=15)
 
-    # Remover a legenda de pontos
-    ax.legend().set_visible(False)
-
     # Adicionar imagem ao gráfico
     add_image(ax, 'foto.png', zoom=0.25, xy=(0.9, -0.1))
+
+    # Adicionar legenda
+    ax.legend()
 
     # Exibir o gráfico
     st.pyplot(fig)
@@ -130,152 +125,43 @@ elif opcao == 'Benchmarking':
     # Código para "Benchmarking"
     st.title("Benchmarking")
 
-    modelos_input = st.text_input("Digite os modelos separados por vírgula:").strip()
-    perda_agua_input = st.text_input("Digite as perdas de água separadas por vírgula:").strip()
-    crocancia_input = st.text_area("Digite os valores das crocâncias separadas por vírgula (os valores serão usados para calcular a crocância média):").strip()
+    # Inicializar ou carregar dados
+    if 'df' not in st.session_state:
+        st.session_state.df = pd.DataFrame(columns=['Modelo', 'Perda água', 'Crocância med'])
 
-    if modelos_input and perda_agua_input and crocancia_input:
+    # Adicionar novo produto
+    with st.form(key='novo_produto_form'):
+        novo_produto = st.text_input("Digite o nome do novo produto:")
+        nova_perda_agua = st.text_input("Digite a perda de água do novo produto:")
+        nova_crocancia = st.text_input("Digite a crocância do novo produto:")
+        submit_button = st.form_submit_button(label='Adicionar Produto')
+
+    if submit_button and novo_produto and nova_perda_agua and nova_crocancia:
         try:
-            # Conversão para listas de dados
-            modelos = modelos_input.split(',')
-            perda_agua = list(map(float, perda_agua_input.split(',')))
-            crocancia = list(map(float, crocancia_input.split(',')))
+            nova_perda_agua = float(nova_perda_agua)
+            nova_crocancia = float(nova_crocancia)
 
-            # Calcular a média da crocância
-            crocancia_media = np.mean(crocancia)
-            crocancia_med = [crocancia_media] * len(modelos)  # Atribuir a mesma média a todos os modelos
+            # Adicionar novo produto ao DataFrame
+            novo_dado = pd.DataFrame({
+                'Modelo': [novo_produto],
+                'Perda água': [nova_perda_agua],
+                'Crocância med': [nova_crocancia]
+            })
+            st.session_state.df = pd.concat([st.session_state.df, novo_dado], ignore_index=True)
 
-            # Criar um DataFrame com os dados fornecidos
-            data = {
-                'Modelo': modelos,
-                'Perda água': perda_agua,
-                'Crocância med': crocancia_med
-            }
-            df = pd.DataFrame(data)
+            # Gerar gráfico atualizado
+            gerar_grafico(st.session_state.df)
 
-            # Gerar gráfico inicial
-            fig, ax = plt.subplots(figsize=(10, 6))
-            colors = plt.cm.get_cmap('tab10', len(modelos))
-
-            for i, produto in enumerate(modelos):
-                df_produto = df[df['Modelo'] == produto]
-                ax.scatter(df_produto['Perda água'], df_produto['Crocância med'], color=colors(i), label=produto)
-
-            # Adicionar título e rótulos aos eixos
-            ax.set_title('Benchmarking')
-            ax.set_xlabel('Water loss (%)')
-            ax.set_ylabel('Hardness (N)')
-
-            # Definir intervalos dos eixos
-            ax.set_xticks([i for i in range(0, 71, 2)])
-            ax.set_yticks(range(0, 26, 1))
-
-            # Definir limites dos eixos
-            ax.set_xlim(0, 70)
-            ax.set_ylim(0, 25)
-
-            # Adicionar linhas dos eixos x e y mais fracas e atrás dos outros elementos
-            ax.axhline(0, color='gray', linewidth=0.2, zorder=0)
-            ax.axvline(0, color='gray', linewidth=0.2, zorder=0)
-            ax.grid(color='gray', linestyle='-', linewidth=0.2, zorder=0)
-
-            # Preencher com um degradê do verde para o laranja (mais claro e transparente)
-            gradient_fill(ax, [20, 60], np.array([5]), np.array([24.8]), 'lightgreen', 'lightcoral')
-
-            # Adicionar linhas vermelhas
-            ax.plot([20, 60], [5, 5], color='red', zorder=3)
-            ax.plot([20, 20], [0.5, 24.8], color='red', zorder=3)
-            ax.plot([60, 60], [0.5, 24.8], color='red', zorder=3)
-
-            # Adicionar linha cinza
-            ax.plot([20, 60], [10, 10], color='gray', zorder=3)
-
-            # Adicionar palavras no eixo X, alinhadas com a linha do eixo y = 13
-            ax.text(10, 13, 'Uncooked', color='black', ha='center', va='center', fontsize=20, zorder=15)
-            ax.text(65, 13, 'Dry', color='black', ha='center', va='center', fontsize=20, zorder=15)
-            ax.text(40, 2, 'Indefinite', color='black', ha='center', va='center', fontsize=20, zorder=15)
-
-            # Adicionar imagem ao gráfico
-            add_image(ax, 'foto.png', zoom=0.25, xy=(0.9, -0.1))
-
-            # Adicionar legenda
-            ax.legend()
-
-            # Exibir o gráfico
-            st.pyplot(fig)
-
-            # Adicionar novo produto
-            novo_produto = st.text_input("Digite o nome do novo produto:")
-            nova_perda_agua = st.text_input("Digite a perda de água do novo produto:")
-            nova_crocancia = st.text_input("Digite a crocância do novo produto:")
-
-            if novo_produto and nova_perda_agua and nova_crocancia:
-                try:
-                    nova_perda_agua = float(nova_perda_agua)
-                    nova_crocancia = float(nova_crocancia)
-
-                    # Adicionar novo produto ao DataFrame
-                    novo_dado = pd.DataFrame({
-                        'Modelo': [novo_produto],
-                        'Perda água': [nova_perda_agua],
-                        'Crocância med': [nova_crocancia]
-                    })
-                    df = pd.concat([df, novo_dado], ignore_index=True)
-
-                    # Gerar gráfico atualizado
-                    fig, ax = plt.subplots(figsize=(10, 6))
-                    colors = plt.cm.get_cmap('tab10', len(df['Modelo'].unique()))
-
-                    for i, produto in enumerate(df['Modelo'].unique()):
-                        df_produto = df[df['Modelo'] == produto]
-                        ax.scatter(df_produto['Perda água'], df_produto['Crocância med'], color=colors(i), label=produto)
-
-                    # Adicionar título e rótulos aos eixos
-                    ax.set_title('Benchmarking')
-                    ax.set_xlabel('Water loss (%)')
-                    ax.set_ylabel('Hardness (N)')
-
-                    # Definir intervalos dos eixos
-                    ax.set_xticks([i for i in range(0, 71, 2)])
-                    ax.set_yticks(range(0, 26, 1))
-
-                    # Definir limites dos eixos
-                    ax.set_xlim(0, 70)
-                    ax.set_ylim(0, 25)
-
-                    # Adicionar linhas dos eixos x e y mais fracas e atrás dos outros elementos
-                    ax.axhline(0, color='gray', linewidth=0.2, zorder=0)
-                    ax.axvline(0, color='gray', linewidth=0.2, zorder=0)
-                    ax.grid(color='gray', linestyle='-', linewidth=0.2, zorder=0)
-
-                    # Preencher com um degradê do verde para o laranja (mais claro e transparente)
-                    gradient_fill(ax, [20, 60], np.array([5]), np.array([24.8]), 'lightgreen', 'lightcoral')
-
-                    # Adicionar linhas vermelhas
-                    ax.plot([20, 60], [5, 5], color='red', zorder=3)
-                    ax.plot([20, 20], [0.5, 24.8], color='red', zorder=3)
-                    ax.plot([60, 60], [0.5, 24.8], color='red', zorder=3)
-
-                    # Adicionar linha cinza
-                    ax.plot([20, 60], [10, 10], color='gray', zorder=3)
-
-                    # Adicionar palavras no eixo X, alinhadas com a linha do eixo y = 13
-                    ax.text(10, 13, 'Uncooked', color='black', ha='center', va='center', fontsize=20, zorder=15)
-                    ax.text(65, 13, 'Dry', color='black', ha='center', va='center', fontsize=20, zorder=15)
-                    ax.text(40, 2, 'Indefinite', color='black', ha='center', va='center', fontsize=20, zorder=15)
-
-                    # Adicionar imagem ao gráfico
-                    add_image(ax, 'foto.png', zoom=0.25, xy=(0.9, -0.1))
-
-                    # Adicionar legenda
-                    ax.legend()
-
-                    # Exibir o gráfico atualizado
-                    st.pyplot(fig)
-
-                except ValueError:
-                    st.error("Por favor, insira valores numéricos válidos para perda de água e crocância do novo produto.")
         except ValueError:
-            st.error("Por favor, insira valores numéricos válidos para perdas de água e crocâncias.")
-    else:
-        st.warning("Por favor, insira os dados necessários.")
+            st.error("Por favor, insira valores numéricos válidos para perda de água e crocância do novo produto.")
+
+    # Exibir gráfico atualizado
+    if not st.session_state.df.empty:
+        gerar_grafico(st.session_state.df)
+
+    # Excluir produto
+    excluir_produto = st.selectbox("Selecione um produto para excluir:", st.session_state.df['Modelo'].unique())
+    if st.button("Excluir Produto"):
+        st.session_state.df = st.session_state.df[st.session_state.df['Modelo'] != excluir_produto]
+        st.success(f"Produto '{excluir_produto}' excluído com sucesso!")
+        gerar_grafico(st.session_state.df)
