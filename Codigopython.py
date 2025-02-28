@@ -162,6 +162,3 @@ elif opcao == 'Benchmarking':
         st.session_state.df = st.session_state.df[st.session_state.df['Modelo'] != excluir_produto]
         st.success(f"Produto '{excluir_produto}' excluído com sucesso!")
         gerar_grafico(st.session_state.df)
-
-if opcao == 'Análise e Performance':
-    
