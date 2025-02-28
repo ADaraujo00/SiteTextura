@@ -149,9 +149,6 @@ elif opcao == 'Benchmarking':
             })
             st.session_state.df = pd.concat([st.session_state.df, novo_dado], ignore_index=True)
 
-            # Gerar gráfico atualizado
-            gerar_grafico(st.session_state.df)
-
         except ValueError:
             st.error("Por favor, insira valores numéricos válidos para perda de água e crocância do novo produto.")
 
